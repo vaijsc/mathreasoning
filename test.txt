@@ -1,0 +1,1 @@
+50 workers build 5 houses in 5 days. How many day do 20 workers need to build 10 houses?
