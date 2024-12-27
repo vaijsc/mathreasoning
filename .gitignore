@@ -9,6 +9,7 @@ logs/
 err_analysis/
 gsm8k/
 LLaMA-Factory/data/
+.gitcredential
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
