@@ -20,7 +20,7 @@ if [ -z "$ul2_rethink" ]; then
 fi
 
 job_script_content='#!/bin/bash -e
-#SBATCH --job-name=gen_{{model_name}}_{{checkpoint_name}}_beamsearch_{{cur_partition}}
+#SBATCH --job-name=gen_{{model_name}}_{{checkpoint_name}}_beamsearch_ul2_{{cur_partition}}
 #SBATCH --output=/home/hieupq1/hieupq1/math/logs/slurm_%x.out
 #SBATCH --error=/home/hieupq1/hieupq1/math/logs/slurm_%x.err
 #SBATCH --nodes=1
@@ -41,12 +41,11 @@ cd /home/hieupq1/hieupq1/math/
 python LLaMA-Factory/src/utils/infer_ul2.py \
     --lora_path /home/hieupq1/hieupq1/math/saves/{{model_name}}/{{checkpoint_name}} \
     --dataset_path cache/{{dataset_split}} \
-    --out_file infer_res/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_{{cur_partition}}.json \
+    --out_file infer_res/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_ul2_{{cur_partition}}.json \
     --batch_size 1 \
     --ul2 \
     --sc none \
     --cot_mode "greedy" \
-    --bart_mixed
 '
 
 bash scripts/split_file.sh $dataset_path $num_gpu $output_dataset_prefix

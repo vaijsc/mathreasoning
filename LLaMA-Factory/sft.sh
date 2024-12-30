@@ -1,12 +1,18 @@
 #! /bin/bash
 set -e
 
-model_path="deepseek-math-7b-base"
+model_path=$1
 template="deepseek-math"
-output_dir="saves/deepseek-math-sft-gsm8k"
-n_epoch=6
-n_gpus=1
-# cosine_scheduler_epoch=$6
+output_dir=$2
+n_epoch=$3
+n_gpus=$4
+datasets=$5 
+masked_thought=$6
+
+if [ -z "$masked_thought" ]; then
+  # default value for a dependency condition
+  masked_thought=-1 
+fi
 
 # Initialize variables
 cuda_visible_devices=""
@@ -42,7 +48,7 @@ deepspeed --include=$include \
     --preprocessing_num_workers 16 \
     --lr_scheduler_type cosine \
     --logging_steps 10 \
-    --warmup_steps 35 \
+	  --warmup_ratio 0.05 \
     --save_steps 100000 \
     --eval_strategy "no" \
     --do_eval false \
@@ -55,6 +61,5 @@ deepspeed --include=$include \
     --bf16 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps $(expr 64 / $n_gpus)  \
-    # --ul2_nepochs 3 \
-    # --cosine_scheduler_epoch $cosine_scheduler_epoch \
+    --gradient_accumulation_steps $(expr 64 / $n_gpus) \
+    --masked_thought $masked_thought

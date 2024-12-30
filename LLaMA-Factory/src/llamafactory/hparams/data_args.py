@@ -34,6 +34,10 @@ class DataArguments:
         metadata={"help": "The name of dataset(s) to use for training. Use commas to separate multiple datasets."},
     )
     
+    masked_thought: float = field(
+        default=-1,
+        metadata={"help": "ratio for masked_thought masking used in supervised training only"}
+    )
     # @QHP: add nepochs specifically for UL2 dataset preprocessing
     ul2_nepochs: int = field(
         default=-1,

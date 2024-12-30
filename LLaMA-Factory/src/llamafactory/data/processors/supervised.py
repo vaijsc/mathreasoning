@@ -78,6 +78,12 @@ def _encode_supervised_example(
         else:
             target_label = target_ids
         
+        # @QHP: implement masked thought
+        if data_args.masked_thought != -1:
+            for position in range(len(target_label)):
+                if random.random() < data_args.masked_thought:
+                    target_label[position] = tokenizer.pad_token_id 
+        
         # not what we intent for multiturn, but just assume that it is like this for now
         prefix_length += source_len
 

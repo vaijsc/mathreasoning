@@ -4,6 +4,7 @@ cache/
 deepseek-math-7b-base/
 deepseek-math-7b-instruct/
 Qwen2.5-Math-7B/
+Mistral-7B-v0.1/
 infer_res/
 logs/
 err_analysis/

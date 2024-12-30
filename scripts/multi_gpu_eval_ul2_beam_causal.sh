@@ -6,6 +6,7 @@ output_dataset_prefix=$3
 model_name=$4
 checkpoint_name=$5
 ul2_rethink=$6
+model_path="saves/$model_name/$checkpoint_name" # deepseek-math-ul2-gsm8k-septoken-maskfull-sentence-equation-lossfulltarget-mixedcausalsenteqmasking-5ep/checkpoint-696/
 dependency=$7
 
 if [ -z "$dependency" ]; then
@@ -19,7 +20,7 @@ if [ -z "$ul2_rethink" ]; then
 fi
 
 job_script_content='#!/bin/bash -e
-#SBATCH --job-name=gen_{{model_name}}_{{checkpoint_name}}_{{cur_partition}}_beamsearch_norethink
+#SBATCH --job-name=gen_{{model_name}}_{{checkpoint_name}}_beamsearch_ul2_causal_prefix_{{cur_partition}}
 #SBATCH --output=/home/hieupq1/hieupq1/math/logs/slurm_%x.out
 #SBATCH --error=/home/hieupq1/hieupq1/math/logs/slurm_%x.err
 #SBATCH --nodes=1
@@ -40,10 +41,12 @@ cd /home/hieupq1/hieupq1/math/
 python LLaMA-Factory/src/utils/infer_ul2.py \
     --lora_path /home/hieupq1/hieupq1/math/saves/{{model_name}}/{{checkpoint_name}} \
     --dataset_path cache/{{dataset_split}} \
-    --out_file infer_res/base_model/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_{{cur_partition}}.json \
+    --out_file infer_res/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_ul2_causal_prefix_{{cur_partition}}.json \
     --batch_size 1 \
-    --causal_prefix \
-    --sc none
+    --ul2 \
+    --sc none \
+    --cot_mode "greedy" \
+    --causal_prefix
 '
 
 bash scripts/split_file.sh $dataset_path $num_gpu $output_dataset_prefix
@@ -58,6 +61,6 @@ for ((cur_partition=0; cur_partition<num_gpu; cur_partition++)); do
                       | sed "s/{{dependency}}/${dependency}/g" \
                       | sed "s/{{dataset_split}}/${dataset_split}/g") 
 
-  echo "$job_script_filled" > "scripts/base_generate_${cur_partition}.sh"
-  sbatch scripts/base_generate_${cur_partition}.sh
+  echo "$job_script_filled" > "scripts/eval_${cur_partition}.sh"
+  sbatch scripts/eval_${cur_partition}.sh
 done

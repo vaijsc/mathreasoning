@@ -18,7 +18,7 @@ conda activate llama_fac
 cd /home/hieupq1/hieupq1/math/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
-    --base_path /home/hieupq1/hieupq1/math/deepseek-math-sft-gsm8k-10epoch/ \
+    --lora_path /home/hieupq1/hieupq1/math/saves/deepseek-math-sft-gsm8k-10epoch/checkpoint-1160 \
     --dataset_path cache/gsm8k_test_3.json \
     --out_file infer_res/base_model/deepseek-math-sft-gsm8k-10epoch_checkpoint-1160_gsm8k_test_beamsearch_3.json \
     --batch_size 1 \
