@@ -673,6 +673,7 @@ def eval_loop(model, tokenizer, loader, accelerator, args):
                 final_output_dict["pairwise_rating_examples"] = pairwise_rating_examples
         else:
             final_output_dict["generated_seqs"] = generated_seqs
+            print("generated_seqs", generated_seqs)
         
         all_generated_seqs = accelerator.gather_for_metrics(final_output_dict, use_gather_object=True)
         if accelerator.is_main_process:
@@ -746,8 +747,8 @@ def extend_vocab(model, tokenizer):
     # add new token 
     num_new_token = max(num_new_token, num_reserved_tokens)
 
-    tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-21)]+ ["<SEP>"] + [f"<PLAN_{i}>" for i in range(20)]})
-    # tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-1)]+ ["<SEP>"]})
+    # tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-21)]+ ["<SEP>"] + [f"<PLAN_{i}>" for i in range(20)]})
+    tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-1)]+ ["<SEP>"]})
     # print(tokenizer.encode("<sentinel_tok_10>"))
     new_embedding = CustomEmbedding(model.resize_token_embeddings(len(tokenizer)), [original_vocab_size+i for i in range(num_new_token)])
 

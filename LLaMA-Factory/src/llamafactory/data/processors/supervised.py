@@ -76,13 +76,13 @@ def _encode_supervised_example(
         if data_args.mask_history and turn_idx != 0:  # train on the last turn only
             target_label = [IGNORE_INDEX] * target_len
         else:
-            target_label = target_ids
+            target_label = target_ids.copy()
         
         # @QHP: implement masked thought
         if data_args.masked_thought != -1:
-            for position in range(len(target_label)):
+            for position in range(len(target_ids)):
                 if random.random() < data_args.masked_thought:
-                    target_label[position] = tokenizer.pad_token_id 
+                    target_ids[position] = tokenizer.encode("<sentinel_tok_0>", add_special_tokens=False)[0] 
         
         # not what we intent for multiturn, but just assume that it is like this for now
         prefix_length += source_len

@@ -10,6 +10,8 @@ logs/
 err_analysis/
 gsm8k/
 LLaMA-Factory/data/
+Mistral-7B-v0.1.tar.gz
+test_load.py
 .gitcredential
 # Byte-compiled / optimized / DLL files
 __pycache__/

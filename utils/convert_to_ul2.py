@@ -506,6 +506,7 @@ def _mask_segments(prompt, solution, denoisers, probs=None, mask_on_prompt=False
     return prompt + "\n\n" + prefix, suffix 
 
 def get_pos_regex(pattern, original_text):
+    """Return tuples containing (start, end) of objects (sentence/equation) found by (regex) pattern"""
     result = []
     for match in re.finditer(pattern, original_text):
         start = match.start()

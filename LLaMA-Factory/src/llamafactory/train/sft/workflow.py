@@ -22,7 +22,7 @@ from ...extras.constants import IGNORE_INDEX
 from ...extras.misc import get_logits_processor
 from ...extras.ploting import plot_loss
 from ...model import load_model, load_tokenizer
-from ..trainer_utils import create_modelcard_and_push
+from ..trainer_utils import create_modelcard_and_push, extend_vocab
 from .metric import ComputeAccuracy, ComputeSimilarity, eval_logit_processor
 from .trainer import CustomSeq2SeqTrainer
 
@@ -46,8 +46,12 @@ def run_sft(
     # @QHP: maybe it's best to add an addtional parameter for 'ul2' stage and another one 
     # to duplicate the dataset for the correct number of epoch 
     # 
-    dataset_module = get_dataset(model_args, data_args, training_args, stage="sft", **tokenizer_module)
     model = load_model(tokenizer, model_args, finetuning_args, training_args.do_train)
+
+    if data_args.masked_thought != -1:
+        model, tokenizer = extend_vocab(model, tokenizer, finetune_new_vocab=True)
+
+    dataset_module = get_dataset(model_args, data_args, training_args, stage="sft", **tokenizer_module)
 
     if getattr(model, "is_quantized", False) and not training_args.do_train:
         setattr(model, "_hf_peft_config_loaded", True)  # hack here: make model compatible with prediction

@@ -2,12 +2,18 @@
 set -e
 
 model_path=$1
-template="deepseek-math"
 output_dir=$2
 n_epoch=1
 n_gpus=$3
 datasets=$4
 ul2_causal=$5
+template=$6
+
+if [ -z "$template" ]; then
+  # default value for a dependency condition
+  template="deepseek-math" 
+fi
+
 # cosine_scheduler_epoch=$6
 
 # Initialize variables

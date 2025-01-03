@@ -40,7 +40,7 @@ cd /home/hieupq1/hieupq1/math/
 python LLaMA-Factory/src/utils/infer_ul2.py \
     --lora_path /home/hieupq1/hieupq1/math/saves/{{model_name}}/{{checkpoint_name}} \
     --dataset_path cache/{{dataset_split}} \
-    --out_file infer_res/base_model/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_{{cur_partition}}.json \
+    --out_file infer_res/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_{{cur_partition}}.json \
     --batch_size 1 \
     --causal_prefix \
     --sc none

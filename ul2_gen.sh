@@ -19,8 +19,10 @@ conda activate llama_fac
 cd /home/hieupq1/hieupq1/math/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
-    --lora_path /home/hieupq1/hieupq1/math/saves/deepseek-math-ul2-gsm8k-septoken-maskfull-sentence-equation-lossfulltarget-2-mixedcausalsenteqmasking-5ep/checkpoint-1276/ \
+    --base_path Mistral-7B-v0.1/ \
+    --lora_path saves/mistral-7b-ul2-gsm8k-t5/checkpoint-812/ \
+    --dataset LLaMA-Factory/data/gsm8k_test.json
     --out_file infer_res/ul2-deepseekmath-gsm8k-1276-septoken-maskfull-sentence-equation-lossfulltarget-2-mixedcausalsenteqmasking-5ep.json \
     --batch_size 1 \
-    --sc cot \
+    --sc none \
     --ul2
