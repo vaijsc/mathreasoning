@@ -5,8 +5,9 @@ dataset_path=$2
 output_dataset_prefix=$3
 model_name=$4
 checkpoint_name=$5
-ul2_rethink=$6
-dependency=$7
+base_path=$6
+ul2_rethink=$7
+dependency=$8
 
 if [ -z "$dependency" ]; then
   # default value for a dependency condition
@@ -38,6 +39,7 @@ conda activate llama_fac
 cd /home/hieupq1/hieupq1/math/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
+    --base_path {{base_path}} \
     --lora_path /home/hieupq1/hieupq1/math/saves/{{model_name}}/{{checkpoint_name}} \
     --dataset_path cache/{{dataset_split}} \
     --out_file infer_res/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_{{cur_partition}}.json \
@@ -51,6 +53,7 @@ bash scripts/split_file.sh $dataset_path $num_gpu $output_dataset_prefix
 for ((cur_partition=0; cur_partition<num_gpu; cur_partition++)); do
   dataset_split="${output_dataset_prefix}_${cur_partition}.json" 
   job_script_filled=$(echo "$job_script_content" \
+                      | sed "s/{{base_path}}/${base_path}/g" \
                       | sed "s/{{model_name}}/${model_name}/g" \
                       | sed "s/{{checkpoint_name}}/${checkpoint_name}/g" \
                       | sed "s/{{output_dataset_prefix}}/${output_dataset_prefix}/g" \

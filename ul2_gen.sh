@@ -13,16 +13,19 @@
 #SBATCH --dependency=120925
 #SBATCH --exclude=sdc2-hpc-dgx-a100-002,sdc2-hpc-dgx-a100-001,sdc2-hpc-dgx-a100-010,sdc2-hpc-dgx-a100-009
 
+# --lora_path saves/deepseek-math-ul2-gsm8k-septoken-maskfull-sentence-equation-lossfulltarget-mixedcausalsenteqmasking-5ep/checkpoint-812 \
+# --base_path Mistral-7B-v0.1/ \
+#saves/mistral-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead/checkpoint-812/
+# --lora_path saves/mistral-7b-ul2-gsm8k-t5-rerun-correctdata/checkpoint-812/ \
 module load python/miniconda3/miniconda3
 eval "$(conda shell.bash hook)"
 conda activate llama_fac
 cd /home/hieupq1/hieupq1/math/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
-    --base_path Mistral-7B-v0.1/ \
-    --lora_path saves/mistral-7b-ul2-gsm8k-t5/checkpoint-812/ \
-    --dataset LLaMA-Factory/data/gsm8k_test.json
+    --lora_path saves/deepseek-7b-ul2-gsm8k-t5-rerun/checkpoint-928/ \
+    --dataset LLaMA-Factory/data/gsm8k_test.json \
     --out_file infer_res/ul2-deepseekmath-gsm8k-1276-septoken-maskfull-sentence-equation-lossfulltarget-2-mixedcausalsenteqmasking-5ep.json \
     --batch_size 1 \
-    --sc none \
-    --ul2
+    --ul2 \
+    --sc none

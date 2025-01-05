@@ -1,5 +1,5 @@
 #!/bin/bash -e
-#SBATCH --job-name=gen_deepseek-math-ul2-gsm8k-septoken-maskfull-sentence-equation-lossfulltarget-mixedcausalsenteqmasking-5ep_checkpoint-928_beamsearch_ul2_1
+#SBATCH --job-name=gen_mistral-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead_checkpoint-928_beamsearch_ul2_1
 #SBATCH --output=/home/hieupq1/hieupq1/math/logs/slurm_%x.out
 #SBATCH --error=/home/hieupq1/hieupq1/math/logs/slurm_%x.err
 #SBATCH --nodes=1
@@ -18,10 +18,10 @@ conda activate llama_fac
 cd /home/hieupq1/hieupq1/math/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
-    --lora_path /home/hieupq1/hieupq1/math/saves/deepseek-math-ul2-gsm8k-septoken-maskfull-sentence-equation-lossfulltarget-mixedcausalsenteqmasking-5ep/checkpoint-928 \
+    --base_path Mistral-7B-v0.1 \
+    --lora_path /home/hieupq1/hieupq1/math/saves/mistral-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead/checkpoint-928 \
     --dataset_path cache/gsm8k_test_1.json \
-    --out_file infer_res/deepseek-math-ul2-gsm8k-septoken-maskfull-sentence-equation-lossfulltarget-mixedcausalsenteqmasking-5ep_checkpoint-928_gsm8k_test_beamsearch_ul2_1.json \
+    --out_file infer_res/mistral-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead_checkpoint-928_gsm8k_test_beamsearch_ul2_1.json \
     --batch_size 1 \
     --ul2 \
-    --sc none \
-    --cot_mode "greedy" \
+    --sc none

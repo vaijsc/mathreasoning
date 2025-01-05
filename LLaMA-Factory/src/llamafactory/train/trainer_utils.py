@@ -473,6 +473,11 @@ def extend_vocab(model, tokenizer, finetune_new_vocab=False, num_new_token=100):
 
     new_embedding = CustomEmbedding(model.resize_token_embeddings(len(tokenizer)), [original_vocab_size+i for i in range(num_new_token)], finetune_new_vocab)
     model.set_input_embeddings(new_embedding)
+
+    # 2025/12/04 finetune-vocab matrix
+
+    lm_head = model.get_output_embeddings()
+    lm_head.weight.requires_grad = True
     
     return model, tokenizer
 

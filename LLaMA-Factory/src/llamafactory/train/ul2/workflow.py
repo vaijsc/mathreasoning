@@ -51,6 +51,13 @@ def run_ul2(
 
     model, tokenizer = extend_vocab(model, tokenizer, finetune_new_vocab=finetuning_args.ul2_finetune_embedding)
 
+    for name, param in model.named_parameters():
+        print(
+            "name: {}, dtype: {}, shape: {}, device: {}, trainable: {}".format(
+                name, param.dtype, param.shape, param.device, param.requires_grad
+            )
+        )
+
     dataset_module = get_dataset(model_args, data_args, training_args, stage=finetuning_args.stage, **tokenizer_module)
     
     # extend new tokens + freeze old token weights

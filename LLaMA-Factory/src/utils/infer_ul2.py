@@ -341,7 +341,7 @@ def prepare_prompts(prompt_batch , tokenizer: AutoTokenizer, args, for_rethinkin
     if args.causal_prefix and not args.ul2:
         sep_token = ""
     else:
-        sep_token = "<SEP>"
+        sep_token = "<SEP><sentinel_tok_0>"
 
     for sample_idx in range(len(batch)):
         batch[sample_idx] = batch[sample_idx] + sep_token 
@@ -357,7 +357,7 @@ def prepare_prompts(prompt_batch , tokenizer: AutoTokenizer, args, for_rethinkin
     if not args.causal_prefix:
         prefix_lengths = []
         for sample_idx in range(batch["attention_mask"].shape[0]):
-             prefix_lengths.append(torch.sum(batch["attention_mask"][sample_idx] != 0).item())
+             prefix_lengths.append(torch.sum(batch["attention_mask"][sample_idx] != 0).item() - 1)
         batch["prefix_lengths"] = torch.LongTensor(prefix_lengths)# torch.LongTensor([batch["input_ids"].shape[1] * batch["input_ids"].shape[0]])
 
     if args.ul2_rethinking != "none" and not for_rethinking:
@@ -730,6 +730,11 @@ def get_extended_embeddings_state_dict(state_dict, extra_param_name="extra_token
             result[param_name] = state_dict[key]
     return result
 
+def get_lm_head_embeddings_state_dict(state_dict):
+    for key in state_dict.keys():
+        if "lm_head" in key:
+            return {"weight": state_dict[key]}
+    return None
 
 def extend_vocab(model, tokenizer):
     """
@@ -770,10 +775,10 @@ def patch_prepare_inputs_for_generation(
         **kwargs,
     ):
         # QHP: kwargs should contain "prefix_lengths" to build the attention mask for ul2 generation
-        #print("Within patched function")
-        #print("kwargs_keys", kwargs.keys())
-        #print(input_ids.shape)
-        #print("kwargs", prefix_lengths)
+        # print("Within patched function")
+        # print("kwargs_keys", kwargs.keys())
+        # print(input_ids.shape)
+        # print("kwargs", prefix_lengths)
         # If we have cache: let's slice `input_ids` through `cache_position`, to keep only the unprocessed tokens
         # Exception 1: when passing input_embeds, input_ids may be missing entries
         # Exception 2: some generation methods do special slicing of input_ids, so we don't need to do it here
@@ -797,12 +802,7 @@ def patch_prepare_inputs_for_generation(
             model_inputs = {"input_ids": input_ids.contiguous()}  # `contiguous()` needed for compilation use cases
 
         if prefix_lengths is not None:
-            # print("prefix lengths neeee", input_ids.dtype) 
-            # print("before convert attn_mask", attention_mask.shape)
             attention_mask = prepare_ul2_4d_attention_mask(attention_mask, prefix_lengths, torch.float16)[:, :, -input_ids.shape[1]:, :]
-            # print("prefix_lengths", prefix_lengths)
-            # print(input_ids.shape)
-            # print("4d_mask", attention_mask.shape)
 
         model_inputs.update(
             {
@@ -836,12 +836,22 @@ def main(args):
     if args.ul2:
         state_dict_path = f"{lora_path}/global_step{lora_path.split('-')[-1]}/mp_rank_00_model_states.pt"
         state_dict = torch.load(state_dict_path)["module"]
-
+        
         model, tokenizer = extend_vocab(model, tokenizer)
         
         # load extra parameters for embedding layer
         embedding = model.get_input_embeddings()
-        embedding.load_state_dict(get_extended_embeddings_state_dict(state_dict, extra_param_name=args.extra_param_name), strict=False)
+        extra_embeddings = get_extended_embeddings_state_dict(state_dict, extra_param_name=args.extra_param_name)
+        embedding.load_state_dict(extra_embeddings, strict=False)
+        
+        lm_head_state_dict = get_lm_head_embeddings_state_dict(state_dict)
+
+        if lm_head_state_dict is not None:
+            print("Loading lm_head")
+            output_embedding = model.get_output_embeddings()
+            output_embedding.load_state_dict(lm_head_state_dict)
+        else: 
+            print("Didn't train lm_head")
 
         if not args.causal_prefix:
             setattr(model, 'prepare_inputs_for_generation', patch_prepare_inputs_for_generation)

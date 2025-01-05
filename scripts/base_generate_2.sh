@@ -1,5 +1,5 @@
 #!/bin/bash -e
-#SBATCH --job-name=gen_deepseek-math-sft-gsm8k-masked-thought_checkpoint-928_2_beamsearch_norethink
+#SBATCH --job-name=gen_mistral7b-sft-gsm8k-10epoch_checkpoint-1160_2_beamsearch_norethink
 #SBATCH --output=/home/hieupq1/hieupq1/math/logs/slurm_%x.out
 #SBATCH --error=/home/hieupq1/hieupq1/math/logs/slurm_%x.err
 #SBATCH --nodes=1
@@ -18,9 +18,10 @@ conda activate llama_fac
 cd /home/hieupq1/hieupq1/math/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
-    --lora_path /home/hieupq1/hieupq1/math/saves/deepseek-math-sft-gsm8k-masked-thought/checkpoint-928 \
+    --base_path Mistral-7B-v0.1 \
+    --lora_path /home/hieupq1/hieupq1/math/saves/mistral7b-sft-gsm8k-10epoch/checkpoint-1160 \
     --dataset_path cache/gsm8k_test_2.json \
-    --out_file infer_res/deepseek-math-sft-gsm8k-masked-thought_checkpoint-928_gsm8k_test_beamsearch_2.json \
+    --out_file infer_res/mistral7b-sft-gsm8k-10epoch_checkpoint-1160_gsm8k_test_beamsearch_2.json \
     --batch_size 1 \
     --causal_prefix \
     --sc none

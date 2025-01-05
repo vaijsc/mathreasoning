@@ -8,6 +8,12 @@ n_gpus=$3
 datasets=$4
 ul2_causal=$5
 template=$6
+lr=$7
+
+if [ -z "$lr" ]; then
+  # default value for a dependency condition
+  lr=5e-5 
+fi
 
 if [ -z "$template" ]; then
   # default value for a dependency condition
@@ -32,7 +38,7 @@ for (( i=0; i<${n_gpus}; i++ )); do
 done
 
 deepspeed --include=$include \
-  --master_port 60000 \
+  --master_port 60009 \
 	LLaMA-Factory/src/train.py \
 	--deepspeed LLaMA-Factory/examples/deepspeed/ds_z2_config.json \
 	--model_name_or_path $model_path \
@@ -56,7 +62,7 @@ deepspeed --include=$include \
 	--do_eval false \
 	--save_strategy steps \
 	--save_steps 116 \
-	--learning_rate 5e-5 \
+	--learning_rate $lr \
 	--num_train_epochs $n_epoch \
 	--val_size 0.0 \
 	--ddp_timeout 180000000 \

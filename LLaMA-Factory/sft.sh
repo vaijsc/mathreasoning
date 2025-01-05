@@ -2,16 +2,21 @@
 set -e
 
 model_path=$1
-template="deepseek-math"
 output_dir=$2
 n_epoch=$3
 n_gpus=$4
-datasets=$5 
-masked_thought=$6
+datasets=$5
+template=$6
+masked_thought=$7
 
 if [ -z "$masked_thought" ]; then
   # default value for a dependency condition
   masked_thought=-1 
+fi
+
+if [ -z "$template" ]; then
+  # default value for a dependency condition
+  template="deepseek-math"
 fi
 
 # Initialize variables

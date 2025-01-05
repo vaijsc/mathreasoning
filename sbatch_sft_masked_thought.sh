@@ -16,6 +16,7 @@ module load python/miniconda3/miniconda3
 model_path="deepseek-math-7b-base/"
 save_dir="saves/deepseek-math-sft-gsm8k-masked-thought"
 datasets="gsm8k_train"
+template="deepseek-math"
 n_epoch=10
 n_gpus=2
 masked_thought=0.4
@@ -24,4 +25,4 @@ eval "$(conda shell.bash hook)"
 conda activate llama_fac
 cd /home/hieupq1/hieupq1/math/
 
-bash LLaMA-Factory/sft.sh $model_path $save_dir $n_epoch $n_gpus $datasets $masked_thought
+bash LLaMA-Factory/sft.sh $model_path $save_dir $n_epoch $n_gpus $datasets $template $masked_thought
