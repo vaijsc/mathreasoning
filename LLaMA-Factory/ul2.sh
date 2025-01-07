@@ -38,7 +38,7 @@ for (( i=0; i<${n_gpus}; i++ )); do
 done
 
 deepspeed --include=$include \
-  --master_port 60009 \
+  --master_port 60010 \
 	LLaMA-Factory/src/train.py \
 	--deepspeed LLaMA-Factory/examples/deepspeed/ds_z2_config.json \
 	--model_name_or_path $model_path \

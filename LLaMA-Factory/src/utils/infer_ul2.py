@@ -6,7 +6,7 @@ from transformers import AutoModel, AutoModelForCausalLM, AutoTokenizer, AutoCon
 from collections import defaultdict
 from transformers.models.llama import LlamaForCausalLM
 
-from peft import LoraConfig, AutoPeftModel, get_peft_model
+from peft import LoraConfig, AutoPeftModel, PeftModel, get_peft_model
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import warnings
@@ -827,11 +827,10 @@ def main(args):
     lora_path = args.lora_path
 
     model = AutoModelForCausalLM.from_pretrained(
-                                                    lora_path if len(lora_path) else args.base_path,
-                                                    device_map="auto", 
-                                                    # attn_implementation="flash_attention_2", 
-                                                    torch_dtype=torch.float16
-                                                )
+                                                args.base_path,
+                                                device_map="auto", 
+                                                torch_dtype=torch.float16
+                                            )
 
     if args.ul2:
         state_dict_path = f"{lora_path}/global_step{lora_path.split('-')[-1]}/mp_rank_00_model_states.pt"
@@ -855,7 +854,14 @@ def main(args):
 
         if not args.causal_prefix:
             setattr(model, 'prepare_inputs_for_generation', patch_prepare_inputs_for_generation)
-    
+
+    model = PeftModel.from_pretrained(
+                                    model,
+                                    args.lora_path,
+                                    device_map="auto", 
+                                    torch_dtype=torch.float16
+                                )
+
     eval_set = CustomDataset(args.dataset_path)
     eval_loader = DataLoader(   
                                 eval_set, 

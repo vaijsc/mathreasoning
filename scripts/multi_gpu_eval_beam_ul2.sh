@@ -21,8 +21,8 @@ fi
 
 job_script_content='#!/bin/bash -e
 #SBATCH --job-name=gen_{{model_name}}_{{checkpoint_name}}_beamsearch_ul2_{{cur_partition}}
-#SBATCH --output=/home/hieupq1/hieupq1/math/logs/slurm_%x.out
-#SBATCH --error=/home/hieupq1/hieupq1/math/logs/slurm_%x.err
+#SBATCH --output=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.out
+#SBATCH --error=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.err
 #SBATCH --nodes=1
 #SBATCH --gpus-per-node=1
 #SBATCH --mem-per-gpu=40G
@@ -36,11 +36,11 @@ job_script_content='#!/bin/bash -e
 module load python/miniconda3/miniconda3
 eval "$(conda shell.bash hook)"
 conda activate llama_fac
-cd /home/hieupq1/hieupq1/math/
+cd /home/duongnt120/duongnt120/project/mathreasoning/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
     --base_path {{base_path}} \
-    --lora_path /home/hieupq1/hieupq1/math/saves/{{model_name}}/{{checkpoint_name}} \
+    --lora_path saves/{{model_name}}/{{checkpoint_name}} \
     --dataset_path cache/{{dataset_split}} \
     --out_file infer_res/{{model_name}}_{{checkpoint_name}}_{{output_dataset_prefix}}_beamsearch_ul2_{{cur_partition}}.json \
     --batch_size 1 \

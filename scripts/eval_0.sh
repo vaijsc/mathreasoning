@@ -1,7 +1,7 @@
 #!/bin/bash -e
-#SBATCH --job-name=gen_mistral-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead_checkpoint-928_beamsearch_ul2_0
-#SBATCH --output=/home/hieupq1/hieupq1/math/logs/slurm_%x.out
-#SBATCH --error=/home/hieupq1/hieupq1/math/logs/slurm_%x.err
+#SBATCH --job-name=gen_deepseek-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead-1e-4_checkpoint-928_beamsearch_ul2_0
+#SBATCH --output=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.out
+#SBATCH --error=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.err
 #SBATCH --nodes=1
 #SBATCH --gpus-per-node=1
 #SBATCH --mem-per-gpu=40G
@@ -15,13 +15,13 @@
 module load python/miniconda3/miniconda3
 eval "$(conda shell.bash hook)"
 conda activate llama_fac
-cd /home/hieupq1/hieupq1/math/
+cd /home/duongnt120/duongnt120/project/mathreasoning/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
-    --base_path Mistral-7B-v0.1 \
-    --lora_path /home/hieupq1/hieupq1/math/saves/mistral-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead/checkpoint-928 \
+    --base_path deepseek-math-7b-base \
+    --lora_path saves/deepseek-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead-1e-4/checkpoint-928 \
     --dataset_path cache/gsm8k_test_0.json \
-    --out_file infer_res/mistral-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead_checkpoint-928_gsm8k_test_beamsearch_ul2_0.json \
+    --out_file infer_res/deepseek-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead-1e-4_checkpoint-928_gsm8k_test_beamsearch_ul2_0.json \
     --batch_size 1 \
     --ul2 \
     --sc none
