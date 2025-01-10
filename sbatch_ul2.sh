@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-#SBATCH --job-name=deepseek-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead-1e-4
+#SBATCH --job-name=deepseek-7b-ul2-gsm8k-soc-t5-noftlmhead
 #SBATCH --output=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.out
 #SBATCH --error=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.err
 #SBATCH --nodes=1
@@ -13,15 +13,15 @@
 #SBATCH --dependency=116188
 #SBATCH --exclude=sdc2-hpc-dgx-a100-001,sdc2-hpc-dgx-a100-002
 
-JOB_NAME="deepseek-7b-ul2-gsm8k-t5-rerun-correctdata-finetune-lmhead-1e-4"
+JOB_NAME="deepseek-7b-ul2-gsm8k-soc-t5-noftlmhead"
 save_dir="saves/${JOB_NAME}"
 n_gpus=2
 model_path="deepseek-math-7b-base"
 # datasets="gsm8k_train_5_ul2_1_bartmixed"
-datasets="gsm8k_train_5_ul2_mixedcausalsenteqmasking"
+datasets="gsm8k_train_socratic_7_ul2_1_mixedcausalsenteqmasking"
 ul2_causal=false
-template="deepseek-math"
-lr=1e-4
+template="mistral"
+lr=5e-5
 
 #,gsm8k_train_0_ul2_1_bartmixedreverse
 

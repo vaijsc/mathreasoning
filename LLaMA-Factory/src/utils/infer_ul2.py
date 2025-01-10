@@ -736,12 +736,10 @@ def get_lm_head_embeddings_state_dict(state_dict):
             return {"weight": state_dict[key]}
     return None
 
-def extend_vocab(model, tokenizer):
+def extend_vocab(model, tokenizer, num_new_tokens=100):
     """
         Replace the model Embedding with the custom embedding to learn newly added tokens only
     """
-    num_new_token = 100 # default value
-
     original_embedding = model.get_input_embeddings() # to get the embedding layer
 
     original_embedding_vocab_size = original_embedding.weight.shape[0]
@@ -836,7 +834,7 @@ def main(args):
         state_dict_path = f"{lora_path}/global_step{lora_path.split('-')[-1]}/mp_rank_00_model_states.pt"
         state_dict = torch.load(state_dict_path)["module"]
         
-        model, tokenizer = extend_vocab(model, tokenizer)
+        model, tokenizer = extend_vocab(model, tokenizer, args.num_new_tokens)
         
         # load extra parameters for embedding layer
         embedding = model.get_input_embeddings()
@@ -917,6 +915,7 @@ if __name__ == "__main__":
     parser.add_argument("--reread", action="store_true", help="reread input question")
     parser.add_argument("--bart_mixed", action="store_true", help="is this the bart_mixed model")
     parser.add_argument("--cot_threshold", type=float, default=0.4, help="threshold for not reviewing")
+    parser.add_argument("--num_new_tokens", type=int, default=100, help="num_new_token")
     
     parser.add_argument("--sent1sentdenoise", action="store_true")
     parser.add_argument("--sc", choices=['min', 'mean', 'prod', 'ul2', 'cot', 'none'], default="none", help="whether or not to use soft self-consistency sampling")

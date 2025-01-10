@@ -453,7 +453,7 @@ def get_batch_logps(
     per_token_logps = torch.gather(logits.log_softmax(-1), dim=2, index=labels.unsqueeze(2)).squeeze(2)
     return (per_token_logps * loss_mask).sum(-1), loss_mask.sum(-1)
 
-def extend_vocab(model, tokenizer, finetune_new_vocab=False, num_new_token=100):
+def extend_vocab(model, tokenizer, finetune_new_vocab=False, num_new_tokens=100):
     """
         Replace the model Embedding with the custom embedding to learn newly added tokens only
     """
@@ -477,7 +477,8 @@ def extend_vocab(model, tokenizer, finetune_new_vocab=False, num_new_token=100):
     # 2025/12/04 finetune-vocab matrix
 
     lm_head = model.get_output_embeddings()
-    lm_head.weight.requires_grad = True
+
+    lm_head.weight.requires_grad = if num_reserved_tokens <= 0
     
     return model, tokenizer
 

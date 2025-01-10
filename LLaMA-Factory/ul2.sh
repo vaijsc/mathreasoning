@@ -9,6 +9,7 @@ datasets=$4
 ul2_causal=$5
 template=$6
 lr=$7
+num_new_tokens=$8
 
 if [ -z "$lr" ]; then
   # default value for a dependency condition
@@ -20,7 +21,10 @@ if [ -z "$template" ]; then
   template="deepseek-math" 
 fi
 
-# cosine_scheduler_epoch=$6
+if [ -z "$num_new_tokens" ]; then
+  # default value for a dependency condition
+  num_new_tokens=100 
+fi
 
 # Initialize variables
 cuda_visible_devices=""
@@ -72,4 +76,5 @@ deepspeed --include=$include \
 	--gradient_accumulation_steps $(expr 64 / $n_gpus) \
   --ul2_finetune_embedding true \
   --ul2_causal $ul2_causal
+  --num_new_tokens $num_new_tokens
 # --cosine_scheduler_epoch $cosine_scheduler_epoch \

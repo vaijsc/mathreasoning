@@ -49,7 +49,12 @@ def run_ul2(
     # edit: stage = finetuning_args.stage
     model = load_model(tokenizer, model_args, finetuning_args, training_args.do_train)
 
-    model, tokenizer = extend_vocab(model, tokenizer, finetune_new_vocab=finetuning_args.ul2_finetune_embedding)
+    model, tokenizer = extend_vocab(    
+                                        model, 
+                                        tokenizer, 
+                                        finetune_new_vocab=finetuning_args.ul2_finetune_embedding,
+                                        num_new_tokens=model_args.num_new_tokens
+                                    )
 
     for name, param in model.named_parameters():
         print(

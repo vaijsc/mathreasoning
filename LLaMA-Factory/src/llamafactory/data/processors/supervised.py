@@ -81,7 +81,7 @@ def _encode_supervised_example(
         # @QHP: implement masked thought
         if data_args.masked_thought != -1:
             for position in range(len(target_ids)):
-                if random.random() < data_args.masked_thought:
+                if random.random() < data_args.masked_thought and target_ids[position] not in tokenizer.all_special_ids:
                     target_ids[position] = tokenizer.encode("<sentinel_tok_0>", add_special_tokens=False)[0] 
         
         # not what we intent for multiturn, but just assume that it is like this for now

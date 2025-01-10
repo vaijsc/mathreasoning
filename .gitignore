@@ -1,6 +1,8 @@
 saves/
+scripts/
 Abel-7B-002/
 cache/
+models--meta-llama--Llama-2-7b-hf/
 deepseek-math-7b-base/
 deepseek-math-7b-instruct/
 Qwen2.5-Math-7B/
