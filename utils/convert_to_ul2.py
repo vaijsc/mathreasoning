@@ -301,9 +301,8 @@ def _mixedcausalsenteqmasking(prompt, solution, args):
 
     cur_sentence = 0
     for sample_idx in range(0, len(all_equations)-1):
-        sample_tobe_masked_obj = [all_equations[tmp] for tmp in range(sample_idx, len(all_equations))]
-
-        while cur_sentence < len(all_sentences) and not sample_tobe_masked_obj[0][1] <= all_sentences[cur_sentence][0]:
+        while cur_sentence < len(all_sentences) and not all_equations[sample_idx][1] <= all_sentences[cur_sentence][0]:
+            sample_tobe_masked_obj = [all_equations[tmp] for tmp in range(sample_idx, len(all_equations))]
             if overlap(sample_tobe_masked_obj[0], all_sentences[cur_sentence]):
                 sample_tobe_masked_obj[0] = all_sentences[cur_sentence]
             else:
