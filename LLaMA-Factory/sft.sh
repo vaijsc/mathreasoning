@@ -40,8 +40,23 @@ for (( i=0; i<${n_gpus}; i++ )); do
   fi
 done
 
+is_port_in_use() {
+    lsof -i:$1 > /dev/null 2>&1
+    return $?
+}
+
+# Loop until a free port is found within the specified range
+while true; do
+    random_port=$((RANDOM % 91 + 60010))  # Generate random port between 60010 and 60100
+    
+    if ! is_port_in_use $random_port; then
+        echo "Selected free port: $random_port"
+        break
+    fi
+done
+
 deepspeed --include=$include \
-    --master_port 60000 \
+    --master_port $random_port \
     LLaMA-Factory/src/train.py \
     --deepspeed LLaMA-Factory/examples/deepspeed/ds_z2_config.json \
     --model_name_or_path $model_path \

@@ -45,6 +45,12 @@ class ModelArguments:
             )
         },
     )
+
+    num_new_tokens: int = field(
+        default=100,
+        metadata={"help": "number of new tokens to extend for ul2"}
+    )
+
     adapter_folder: Optional[str] = field(
         default=None,
         metadata={"help": "The folder containing the adapter weights to load."},

@@ -49,7 +49,7 @@ def run_sft(
     model = load_model(tokenizer, model_args, finetuning_args, training_args.do_train)
 
     if data_args.masked_thought != -1:
-        model, tokenizer = extend_vocab(model, tokenizer, finetune_new_vocab=True)
+        model, tokenizer = extend_vocab(model, tokenizer, finetune_new_vocab=True, num_new_tokens=model_args.num_new_tokens)
 
     dataset_module = get_dataset(model_args, data_args, training_args, stage="sft", **tokenizer_module)
 

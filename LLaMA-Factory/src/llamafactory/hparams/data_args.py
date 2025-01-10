@@ -34,11 +34,6 @@ class DataArguments:
         default=None,
         metadata={"help": "The name of dataset(s) to use for training. Use commas to separate multiple datasets."},
     )
-
-    num_new_tokens: int = field(
-        default=100,
-        metadata={"help": "number of new tokens to extend for ul2"}
-    )
     
     masked_thought: float = field(
         default=-1,

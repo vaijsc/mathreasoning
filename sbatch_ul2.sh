@@ -4,7 +4,7 @@
 #SBATCH --output=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.out
 #SBATCH --error=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.err
 #SBATCH --nodes=1
-#SBATCH --gpus-per-node=2
+#SBATCH --gpus-per-node=1
 #SBATCH --mem-per-gpu=40GB
 #SBATCH --cpus-per-gpu=16
 #SBATCH --partition=research
@@ -15,7 +15,7 @@
 
 JOB_NAME="deepseek-7b-ul2-gsm8k-soc-t5-noftlmhead"
 save_dir="saves/${JOB_NAME}"
-n_gpus=2
+n_gpus=1
 model_path="deepseek-math-7b-base"
 # datasets="gsm8k_train_5_ul2_1_bartmixed"
 datasets="gsm8k_train_socratic_7_ul2_1_mixedcausalsenteqmasking"
