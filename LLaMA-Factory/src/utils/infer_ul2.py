@@ -736,6 +736,8 @@ def get_lm_head_embeddings_state_dict(state_dict):
             return {"weight": state_dict[key]}
     return None
 
+    # tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-21)]+ ["<SEP>"] + [f"<PLAN_{i}>" for i in range(20)]})
+
 def extend_vocab(model, tokenizer, num_new_tokens=100):
     """
         Replace the model Embedding with the custom embedding to learn newly added tokens only
@@ -748,12 +750,14 @@ def extend_vocab(model, tokenizer, num_new_tokens=100):
     num_reserved_tokens = original_embedding_vocab_size - original_vocab_size
 
     # add new token 
-    num_new_token = max(num_new_token, num_reserved_tokens)
-
-    # tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-21)]+ ["<SEP>"] + [f"<PLAN_{i}>" for i in range(20)]})
-    tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-1)]+ ["<SEP>"]})
+    num_new_tokens = max(num_new_tokens, num_reserved_tokens)
+    
+    if num_new_tokens != 1:
+        tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_tokens-1)]+ ["<SEP>"]})
+    else:
+        tokenizer.add_special_tokens({"additional_special_tokens":["<sentinel_tok_0>"]})
     # print(tokenizer.encode("<sentinel_tok_10>"))
-    new_embedding = CustomEmbedding(model.resize_token_embeddings(len(tokenizer)), [original_vocab_size+i for i in range(num_new_token)])
+    new_embedding = CustomEmbedding(model.resize_token_embeddings(len(tokenizer)), [original_vocab_size+i for i in range(num_new_tokens)])
 
     model.set_input_embeddings(new_embedding)
 

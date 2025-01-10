@@ -1,10 +1,10 @@
 #!/bin/bash -e
 
-#SBATCH --job-name=deepseek-math-sft-gsm8k-10epoch-masked-thought
-#SBATCH --output=/home/hieupq1/hieupq1/math/logs/slurm_%x.out
-#SBATCH --error=/home/hieupq1/hieupq1/math/logs/slurm_%x.err
+#SBATCH --job-name=mistral-7b-sft-gsm8k-10epoch-masked-thought
+#SBATCH --output=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.out
+#SBATCH --error=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.err
 #SBATCH --nodes=1
-#SBATCH --gpus-per-node=2
+#SBATCH --gpus-per-node=1
 #SBATCH --mem-per-gpu=40GB
 #SBATCH --cpus-per-gpu=16
 #SBATCH --partition=research
@@ -13,16 +13,17 @@
 
 module load python/miniconda3/miniconda3
 
-model_path="deepseek-math-7b-base/"
-save_dir="saves/deepseek-math-sft-gsm8k-masked-thought"
+model_path="Mistral-7B-v0.1"
+save_dir="saves/mistral-7b-sft-gsm8k-10epoch-masked-thought"
 datasets="gsm8k_train"
-template="deepseek-math"
+template="mistral"
 n_epoch=10
-n_gpus=2
+n_gpus=1
 masked_thought=0.4
+num_new_tokens=1
 
 eval "$(conda shell.bash hook)"
 conda activate llama_fac
-cd /home/hieupq1/hieupq1/math/
+cd /home/duongnt120/duongnt120/project/mathreasoning/
 
-bash LLaMA-Factory/sft.sh $model_path $save_dir $n_epoch $n_gpus $datasets $template $masked_thought
+bash LLaMA-Factory/sft.sh $model_path $save_dir $n_epoch $n_gpus $datasets $template $masked_thought $num_new_tokens

@@ -8,6 +8,12 @@ n_gpus=$4
 datasets=$5
 template=$6
 masked_thought=$7
+num_new_tokens=$8
+
+if [ -z "$num_new_tokens" ]; then
+  # default value for a dependency condition
+  num_new_tokens=100 
+fi
 
 if [ -z "$masked_thought" ]; then
   # default value for a dependency condition
@@ -68,4 +74,5 @@ deepspeed --include=$include \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps $(expr 64 / $n_gpus) \
-    --masked_thought $masked_thought
+    --masked_thought $masked_thought \
+    --num_new_tokens $num_new_tokens

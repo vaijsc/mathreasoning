@@ -465,20 +465,23 @@ def extend_vocab(model, tokenizer, finetune_new_vocab=False, num_new_tokens=100)
     num_reserved_tokens = original_embedding_vocab_size - original_vocab_size
 
     # add new token 
-    num_new_token = max(num_new_token, num_reserved_tokens)
+    num_new_tokens = max(num_new_tokens, num_reserved_tokens)
     print("=====EXTENDING MODEL VOCAB=====")
     
     # sep tokens to separate prefix from causal part
-    tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_token-1)]+ ["<SEP>"]})
+    if num_new_tokens != 1:
+        tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_tokens-1)] + ["<SEP>"]})
+    else:
+        tokenizer.add_special_tokens({"additional_special_tokens":["<sentinel_tok_0>"]})
 
-    new_embedding = CustomEmbedding(model.resize_token_embeddings(len(tokenizer)), [original_vocab_size+i for i in range(num_new_token)], finetune_new_vocab)
+    new_embedding = CustomEmbedding(model.resize_token_embeddings(len(tokenizer)), [original_vocab_size+i for i in range(num_new_tokens)], finetune_new_vocab)
     model.set_input_embeddings(new_embedding)
 
     # 2025/12/04 finetune-vocab matrix
 
     lm_head = model.get_output_embeddings()
 
-    lm_head.weight.requires_grad = if num_reserved_tokens <= 0
+    lm_head.weight.requires_grad = True if num_reserved_tokens <= 0 else False
     
     return model, tokenizer
 
