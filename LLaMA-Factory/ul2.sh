@@ -90,6 +90,6 @@ deepspeed --include=$include \
 	--per_device_eval_batch_size 1 \
 	--gradient_accumulation_steps $(expr 64 / $n_gpus) \
   --ul2_finetune_embedding true \
-  --ul2_causal $ul2_causal
+  --ul2_causal $ul2_causal \
   --num_new_tokens $num_new_tokens
 # --cosine_scheduler_epoch $cosine_scheduler_epoch \

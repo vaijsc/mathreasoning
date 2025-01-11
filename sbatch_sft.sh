@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-#SBATCH --job-name=deepseek7b-sft-gsm8k-soc-10epoch
+#SBATCH --job-name=mistral7b-sft-gsm8k-soc-10epoch
 #SBATCH --output=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.out
 #SBATCH --error=/home/duongnt120/duongnt120/project/mathreasoning/logs/slurm_%x.err
 #SBATCH --nodes=1
@@ -13,10 +13,10 @@
 
 module load python/miniconda3/miniconda3
 
-model_path="deepseek-math-7b-base"
-save_dir="saves/deepseek7b-sft-gsm8k-10epoch"
+model_path="Mistral-7B-v0.1"
+save_dir="saves/mistral7b-sft-gsm8k-soc-10epoch"
 datasets="gsm8k_train_socratic"
-template="deepseek-math"
+template="mistral"
 n_epoch=10
 n_gpus=1
 
