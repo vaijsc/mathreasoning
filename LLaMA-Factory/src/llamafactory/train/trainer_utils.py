@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union
 import torch
 from torch.nn import Parameter, Module, ParameterList
 
-from transformers import Trainer
+from transformers import Trainer, Qwen2ForCausalLM
 from transformers.integrations import is_deepspeed_zero3_enabled
 from transformers.optimization import get_scheduler
 from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
@@ -42,8 +42,7 @@ if is_galore_available():
 if TYPE_CHECKING:
     from transformers import PreTrainedModel, Seq2SeqTrainingArguments
     from trl import AutoModelForCausalLMWithValueHead
-
-    from ..hparams import DataArguments
+from ..hparams import DataArguments
 
 
 logger = get_logger(__name__)
@@ -473,16 +472,27 @@ def extend_vocab(model, tokenizer, finetune_new_vocab=False, num_new_tokens=100)
         tokenizer.add_special_tokens({"additional_special_tokens":[f"<sentinel_tok_{i}>" for i in range(num_new_tokens-1)] + ["<SEP>"]})
     else:
         tokenizer.add_special_tokens({"additional_special_tokens":["<sentinel_tok_0>"]})
+    
+    print(type(model))
+    print(type(model.base_model.model))
 
     new_embedding = CustomEmbedding(model.resize_token_embeddings(len(tokenizer)), [original_vocab_size+i for i in range(num_new_tokens)], finetune_new_vocab)
-    model.set_input_embeddings(new_embedding)
 
     # 2025/12/04 finetune-vocab matrix
+    # lm_head = model.get_output_embeddings()
 
-    lm_head = model.get_output_embeddings()
-
-    lm_head.weight.requires_grad = True if num_reserved_tokens <= 0 else False
+    # lm_head.weight.requires_grad = True # if num_reserved_tokens <= 0 else False
     
+    if type(model.base_model.model) == Qwen2ForCausalLM:
+        for name, param in model.get_output_embeddings().named_parameters():
+            if "lora" in name:
+                param.requires_grad_(True)
+    else:
+        lm_head = model.get_output_embeddings()
+
+        lm_head.weight.requires_grad = True # if num_reserved_tokens <= 0 else False
+
+    model.set_input_embeddings(new_embedding)
     return model, tokenizer
 
 def get_extended_embeddings_state_dict(state_dict, extra_param_name="extra_token_embeddings"):

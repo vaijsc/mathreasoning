@@ -7,7 +7,11 @@ models--meta-llama--Llama-2-7b-hf/
 deepseek-math-7b-base/
 deepseek-math-7b-instruct/
 Qwen2.5-Math-7B/
+gemma-7b/
+Qwen2.5-7B/
 Mistral-7B-v0.1/
+Llama-3.1-8B/
+Qwen2-7B/
 infer_res/
 logs/
 err_analysis/

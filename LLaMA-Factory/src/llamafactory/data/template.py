@@ -603,6 +603,27 @@ _register_template(
 )
 
 _register_template(
+    name="qwen-math",
+    format_user=StringFormatter(slots=["<|im_start|>user\n{{content}}<|im_end|>\n<|im_start|>assistant\n"]),
+    format_assistant=StringFormatter(slots=["{{content}}<|endoftext|>"]),
+    stop_words=["<|endoftext|>"]
+)
+
+_register_template(
+    name="llama3-math",
+    format_user=StringFormatter(slots=["<|begin_of_text|>|start_header_id|>user<|end_header_id|>\n\n{{content}}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"]),
+    format_assistant=StringFormatter(slots=["{{content}}<|end_of_text|>"]),
+    stop_words=["<|end_of_text|>"]
+)
+
+_register_template(
+    name="gemma-math",
+    format_user=StringFormatter(slots=["<bos><start_of_turn>user\n{{content}}<end_of_turn>\n<start_of_turn>model\n"]),
+    format_assistant=StringFormatter(slots=["{{content}}<eos>"]),
+    stop_words=["<eos>"]
+)
+
+_register_template(
     name="default",
     format_user=StringFormatter(slots=["Human: {{content}}\nAssistant:"]),
     format_system=StringFormatter(slots=["{{content}}\n"]),

@@ -61,7 +61,7 @@ deepspeed --include=$include \
     --deepspeed LLaMA-Factory/examples/deepspeed/ds_z2_config.json \
     --model_name_or_path $model_path \
     --stage sft \
-    --dataset gsm8k_train \
+    --dataset $datasets \
     --do_train \
     --dataset_dir LLaMA-Factory/data \
     --template $template \

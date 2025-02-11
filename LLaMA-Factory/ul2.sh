@@ -67,7 +67,7 @@ deepspeed --include=$include \
 	--dataset_dir LLaMA-Factory/data \
 	--template $template \
 	--finetuning_type lora \
-	--lora_target "all" \
+	--lora_target "up_proj,down_proj,v_proj,o_proj,q_proj,k_proj,gate_proj" \
 	--lora_rank 32 \
 	--output_dir $output_dir \
 	--overwrite_cache \

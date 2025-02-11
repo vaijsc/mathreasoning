@@ -56,6 +56,12 @@ def compute_confidence_score(logits: torch.Tensor, mode):
 
 def generate(model, inputs, tokenizer, args, sc_mode="none", for_rethinking=False):
     input_length = inputs["input_ids"].shape[1]
+    if "llama3" in args.lora_path and not args.causal_prefix:
+        eos_token_ids = tokenizer.convert_tokens_to_ids(["<|eot_id|>", "<|end_of_text|>"])
+    elif "qwen25" in args.lora_path:
+        eos_token_ids = tokenizer.convert_tokens_to_ids(["<|endoftext|>", "<|im_end|>"])
+    else:
+        eos_token_ids = [tokenizer.eos_token_id]
 
     if sc_mode == "none":
         if args.ul2:
@@ -68,7 +74,7 @@ def generate(model, inputs, tokenizer, args, sc_mode="none", for_rethinking=Fals
                     num_beams = args.beam_size if not for_rethinking else args.rethink_beam_size,
                     num_return_sequences = 1,
                     pad_token_id=tokenizer.eos_token_id,
-                    eos_token_id=[tokenizer.eos_token_id]
+                    eos_token_id=eos_token_ids
                 )
         else:
             with torch.no_grad():
@@ -79,7 +85,7 @@ def generate(model, inputs, tokenizer, args, sc_mode="none", for_rethinking=Fals
                     num_beams = args.beam_size if not for_rethinking else args.rethink_beam_size,
                     num_return_sequences = 1,
                     pad_token_id=tokenizer.eos_token_id,
-                    eos_token_id=[tokenizer.eos_token_id]
+                    eos_token_id=eos_token_ids
                 )
         generated_seq = tokenizer.batch_decode(generate_ids[:, input_length:], skip_special_tokens = not for_rethinking, clean_up_tokenization_spaces = False)
     elif sc_mode == "greedy":
@@ -90,9 +96,10 @@ def generate(model, inputs, tokenizer, args, sc_mode="none", for_rethinking=Fals
                 prefix_lengths=inputs["prefix_lengths"] if "prefix_lengths" in inputs else None,
                 max_new_tokens = args.max_new_tokens,
                 pad_token_id=tokenizer.eos_token_id,
-                eos_token_id=[tokenizer.eos_token_id]
+                eos_token_id=eos_token_ids
             )
         generated_seq = tokenizer.batch_decode(generate_ids[:, input_length:], skip_special_tokens = not for_rethinking, clean_up_tokenization_spaces = False)
+        # print("all", tokenizer.batch_decode(generate_ids[:, :], skip_special_tokens = False, clean_up_tokenization_spaces = False))
     elif sc_mode == "cot":
         # only suppport batch_size = 1
         # swictch to outputing dictionary
@@ -257,7 +264,7 @@ def generate(model, inputs, tokenizer, args, sc_mode="none", for_rethinking=Fals
                 output_scores=True,
                 return_dict_in_generate=True,
                 pad_token_id=tokenizer.eos_token_id,
-                eos_token_id=[tokenizer.eos_token_id],
+                eos_token_id=eos_token_ids,
                 do_sample=True,
                 repetition_penalty=1.2
             )
@@ -341,7 +348,7 @@ def prepare_prompts(prompt_batch , tokenizer: AutoTokenizer, args, for_rethinkin
     if args.causal_prefix and not args.ul2:
         sep_token = ""
     else:
-        sep_token = "<SEP><sentinel_tok_0>"
+        sep_token = "<SEP>"
 
     for sample_idx in range(len(batch)):
         batch[sample_idx] = batch[sample_idx] + sep_token 
@@ -357,7 +364,7 @@ def prepare_prompts(prompt_batch , tokenizer: AutoTokenizer, args, for_rethinkin
     if not args.causal_prefix:
         prefix_lengths = []
         for sample_idx in range(batch["attention_mask"].shape[0]):
-             prefix_lengths.append(torch.sum(batch["attention_mask"][sample_idx] != 0).item() - 1)
+             prefix_lengths.append(torch.sum(batch["attention_mask"][sample_idx] != 0).item())
         batch["prefix_lengths"] = torch.LongTensor(prefix_lengths)# torch.LongTensor([batch["input_ids"].shape[1] * batch["input_ids"].shape[0]])
 
     if args.ul2_rethinking != "none" and not for_rethinking:
@@ -732,7 +739,7 @@ def get_extended_embeddings_state_dict(state_dict, extra_param_name="extra_token
 
 def get_lm_head_embeddings_state_dict(state_dict):
     for key in state_dict.keys():
-        if "lm_head" in key:
+        if "lm_head" in key and "lora" not in key:
             return {"weight": state_dict[key]}
     return None
 
@@ -834,7 +841,7 @@ def main(args):
                                                 torch_dtype=torch.float16
                                             )
 
-    if args.ul2:
+    if args.ul2 or args.masked_thought:
         state_dict_path = f"{lora_path}/global_step{lora_path.split('-')[-1]}/mp_rank_00_model_states.pt"
         state_dict = torch.load(state_dict_path)["module"]
         
@@ -848,13 +855,13 @@ def main(args):
         lm_head_state_dict = get_lm_head_embeddings_state_dict(state_dict)
 
         if lm_head_state_dict is not None:
-            print("Loading lm_head")
             output_embedding = model.get_output_embeddings()
+            print("Loading lm_head")
             output_embedding.load_state_dict(lm_head_state_dict)
         else: 
             print("Didn't train lm_head")
 
-        if not args.causal_prefix:
+        if not args.causal_prefix and args.ul2:
             setattr(model, 'prepare_inputs_for_generation', patch_prepare_inputs_for_generation)
 
     model = PeftModel.from_pretrained(
@@ -874,7 +881,7 @@ def main(args):
                                                         args=args
                                                 ),
                                 shuffle=False,
-                                num_workers=32
+                                num_workers=8
                             )
 
     accelerator.wait_for_everyone()
@@ -922,9 +929,10 @@ if __name__ == "__main__":
     parser.add_argument("--num_new_tokens", type=int, default=100, help="num_new_token")
     
     parser.add_argument("--sent1sentdenoise", action="store_true")
-    parser.add_argument("--sc", choices=['min', 'mean', 'prod', 'ul2', 'cot', 'none'], default="none", help="whether or not to use soft self-consistency sampling")
+    parser.add_argument("--sc", choices=['min', 'mean', 'prod', 'ul2', 'cot', 'greedy', 'none'], default="none", help="whether or not to use soft self-consistency sampling")
     parser.add_argument("--cot_mode", choices=["greedy", "entropy"], default="greedy", help="greedy = top[0] - top[1]")
     parser.add_argument("--collect_wrong_chain", action="store_true")
+    parser.add_argument("--masked_thought", action="store_true")
 
     args = parser.parse_args()
 

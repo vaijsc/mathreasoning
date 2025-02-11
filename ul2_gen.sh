@@ -20,12 +20,14 @@
 module load python/miniconda3/miniconda3
 eval "$(conda shell.bash hook)"
 conda activate llama_fac
-cd /home/hieupq1/hieupq1/math/
 
 python LLaMA-Factory/src/utils/infer_ul2.py \
-    --lora_path saves/deepseek-7b-ul2-gsm8k-t5-rerun/checkpoint-928/ \
+    --lora_path saves/llama31-sft-gsm8k-masked-thought/checkpoint-1160/ \
+    --base_path Llama-3.1-8B \
     --dataset LLaMA-Factory/data/gsm8k_test.json \
-    --out_file infer_res/ul2-deepseekmath-gsm8k-1276-septoken-maskfull-sentence-equation-lossfulltarget-2-mixedcausalsenteqmasking-5ep.json \
+    --out_file infer_res/test_qwen.json \
     --batch_size 1 \
-    --ul2 \
-    --sc none
+    --num_new_token 1 \
+    --masked_thought \
+    --causal_prefix \
+    --sc greedy

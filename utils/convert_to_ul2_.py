@@ -15,7 +15,6 @@ EQUATION_PATTERN = r"((?:\s*\$*\d+\s*)(?:.*?)<<(?:.*?)>>(?:\S*\d+)|\s*#+.*(?=$))
 def ul2_map(samples, indices, num_epochs, tokenizer, args):
     results = {
                 "instruction": [],
-                "input": [],
                 "output": []
             }
     
@@ -23,17 +22,16 @@ def ul2_map(samples, indices, num_epochs, tokenizer, args):
     for sample_idx in range(len(indices)):
         if args.random_mask:
             # random mask strategy
-            for epoch in range(num_epochs):
-                instruction, output = _ul2_random(
-                                    prompt=samples["instruction"][sample_idx],
-                                    solution=samples["output"][sample_idx],
-                                    tokenizer=tokenizer,
-                                    args=args
-                                )
-            
-                # <SEP> token is in the output part but still receive bidirectional attention mask -> later prefix length should be added with 1
-                results["instruction"].append(instruction)
-                results["output"].append(output)
+            instruction, output = _ul2_random(
+                                prompt=samples["instruction"][sample_idx],
+                                solution=samples["output"][sample_idx],
+                                tokenizer=tokenizer,
+                                args=args
+                            )
+        
+            # <SEP> token is in the output part but still receive bidirectional attention mask -> later prefix length should be added with 1
+            results["instruction"].extend(instruction)
+            results["output"].extend(output)
         elif args.mixedcausalsenteqmasking:
             instructions, outputs = _mixedcausalsenteqmasking(
                                                 prompt=samples["instruction"][sample_idx],
@@ -45,14 +43,29 @@ def ul2_map(samples, indices, num_epochs, tokenizer, args):
             results["output"].extend(outputs)
     return results
 
+def get_pos_regex(pattern, original_text):
+    """Return tuples containing (start, end) of objects (sentence/equation) found by (regex) pattern"""
+    result = []
+    for match in re.finditer(pattern, original_text):
+        start = match.start()
+        end = match.end()
+        if len(original_text[start: end].strip()) != 0:
+            result.append((start, end))
+    return result
+
+def overlap(obj1:list, obj2:list):
+    if obj1[1] < obj2[0] or obj2[1] < obj1[0]:
+        return False
+    return True
+
 def _ul2_random(prompt, solution, tokenizer, args):
-    prefixes, suffixes = [prompt + "\n\n" + "<sentinel_tok_0>" + f"\n\n{prompt}"]*args.num_epochs, ["<SEP><sentinel_tok_0>" + solution + "<sentinel_tok_1>"]*args.num_epochs
+    prefixes, suffixes = [prompt + "\n\n" + "<sentinel_tok_0>"]*args.num_epochs, ["<SEP><sentinel_tok_0>" + solution + "<sentinel_tok_1>"]*args.num_epochs
 
     tokenized_solution = tokenizer.encode(solution, add_special_tokens=False)
     
-    denoisers = [(0.15, 3), (0.5, 32)] #(mask_ratio, mean span length)
+    denoisers = [(0.15, 8), (0.5, 32)] #(mask_ratio, mean span length)
     
-    for epoch in range(args.num_epochs):
+    for epoch in range(max(1, int(args.num_epochs // 2))):
         for denoiser in denoisers: # can change to samling by probability latter:
             solution_length = len(tokenized_solution)
             masked_length = int(denoiser[0]* solution_length)
@@ -61,27 +74,36 @@ def _ul2_random(prompt, solution, tokenizer, args):
             total_masked_length = 0
             masked_spans = []
             masked_positions = set()
-            
             for length in span_lengths:
                 if total_masked_length > masked_length:
                     break
 
-                start = random.randint(0, solution_length - length - 1)
+                if length >= solution_length:
+                    continue
 
+                start = random.randint(0, solution_length - length - 1)
                 for i in range(start, min(start + length, solution_length)): 
-                    if i not in masked_positions:
-                        masked_positions.add(i)
-                        total_masked_length += 1
-                    else:
+                    if i == min(start + length, solution_length) - 1:
                         masked_spans.append((start, i))
+                        for j in range(start, i):
+                            masked_positions.add(j)
+                        total_masked_length += i-start
+                        break
+                    if i in masked_positions:
                         break
             
-            prefix, suffix = "", "<SEP>"
+            prefix, suffix = f"{prompt}", "<SEP>"
             prev_masked_position = 0
-            for idx, span in enumerate(masked_spans):
-                prefix += tokenizer.decode(tokenized_solution[prev_masked_position: span[0]]) + f"<sentinel_tok_{idx}>"
-                suffix += f"<sentinel_tok_{idx}>" + tokenizer.decode(tokenized_solution[span[0]:span[1]]) + f"<sentinel_tok_{idx+1}>"
+            sentinel_num=0
+            masked_spans.sort(key=lambda x: x[0])
+            for span in masked_spans:
+                prefix += tokenizer.decode(tokenized_solution[prev_masked_position: span[0]]) + f"<sentinel_tok_{sentinel_num}>"
+                suffix += f"<sentinel_tok_{sentinel_num}>" + tokenizer.decode(tokenized_solution[span[0]:span[1]])
                 prev_masked_position = span[1]
+                sentinel_num += 1
+
+            prefix += tokenizer.decode(tokenized_solution[prev_masked_position:])
+            suffix += f"<sentinel_tok_{sentinel_num}>"
 
             prefixes.append(prefix)
             suffixes.append(suffix)
@@ -111,9 +133,6 @@ def _mixedcausalsenteqmasking(prompt, solution, args):
             cur_sentence += 1            
             
             sentinel_num = 1
-
-            if args.mixedcausalsenteqfrom0:
-                sentinel_num = 0
 
             prefix = ""
             suffix = ""
@@ -148,6 +167,7 @@ def _mixedcausalsenteqmasking(prompt, solution, args):
 def main(args):
     data = Dataset.from_json(args.dataset)
     
+    tokenizer = None
     if args.tokenizer != "":
         assert args.random_mask, "only random_mask requires tokenizer"
         tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
@@ -176,7 +196,7 @@ def main(args):
         outfile_path += f"_{args.causal_dupfactor}_mixedcausalsenteqmasking"
 
     if args.random_mask:
-        outfile_path += f"{args.model_name}_random_mask"
+        outfile_path += f"_{args.model_name}_random_mask"
 
     outfile_path += ".json"
 
@@ -193,6 +213,8 @@ if __name__ == "__main__":
     parser.add_argument("--num_epochs", "-n", type=int, default=5, help="num ul2 training epochs")
     parser.add_argument("--output_path", type=str, default="LLaMA-Factory/data/")
     parser.add_argument("--mixedcausalsenteqmasking", action="store_true")
+    parser.add_argument("--causal_dupfactor", "-c", type=int, default=1)
+    parser.add_argument("--reread", action="store_true")
     parser.add_argument("--random_mask", action="store_true")
 
     args = parser.parse_args()
